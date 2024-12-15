@@ -44,7 +44,7 @@ export default function Register() {
           autoCapitalize="none"
           keyboardType="email-address"
           placeholder="Email"
-          placeholderTextColor="gray"
+          placeholderTextColor="black"
         />
         <TextInput
           style={styles.input}
