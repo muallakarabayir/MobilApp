@@ -1,74 +1,131 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { Button, KeyboardAvoidingView, StyleSheet, Text, TextInput, View,TouchableOpacity,Image } from 'react-native';
+import auth from 'firebase/auth'
+import {FirebaseError} from 'firebase/app'
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import {Link} from 'expo-router';
+import {firebaseAuth} from '../../firebaseConfig'
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+export default function Index(){
+  const [email,setEmail]= useState('');
+  const [password,setPassword]= useState('');
+  const[loading,setLoading]=useState(false);
+  const auth= firebaseAuth;
+
+  const signIn = async () =>{
+    setLoading(true);
+
+    try{
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      console.log(response);
+      
+    }catch(error : any){
+      console.log(error);
+      alert('Sign In failed: ' + error.message);
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  return(
+    <View style={styles.container}>
+       <Image 
+        source={require('../../assets/images/—Pngtree—online doctor health service_14702077.png')} 
+        style={styles.image} 
+      />
+      <Text 
+      style={
+        styles.title
+      }
+      > Welcome </Text>
+      <KeyboardAvoidingView behavior='padding'>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize='none'
+          keyboardType='email-address'
+          placeholder='Email'
+          placeholderTextColor="gray"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+        
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder='Password'
+          placeholderTextColor="gray"
+        />
+      <TouchableOpacity style={styles.button} onPress={signIn} disabled={loading}>
+                <Text style={styles.buttonText}>{loading ? 'Loading...' : 'Login'}</Text>
+      </TouchableOpacity>
+        <View style={styles.linkContainer}>
+        <Link href="/(tabs)/register" style={styles.linkText}>
+        Don't have an account? Sign Up!
+        </Link>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
+  )
 }
 
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center', // Dikeyde ortalama
+    alignItems: 'center', // Yatayda ortalama
+    backgroundColor: '#ffff',
+  },
+  keyboardAvoidingView: {
+    alignItems: 'center', // Yatayda içerikleri ortala
+  },
+  input: {
+  marginVertical: 10,
+  height: 40,
+  width: 300,
+  borderWidth: 1,
+  borderRadius: 10,
+  padding: 10,
+  borderColor: 'gray', // Çerçeve rengi
+  backgroundColor: 'white', // Arka plan rengi
+  color: 'black', // Yazı rengi
+},
+  button: {
+    backgroundColor: 'navy',
+    padding: 10,
+    borderRadius: 30,
     alignItems: 'center',
-    gap: 8,
+    width: 300,
+    marginTop: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title:{
+    color:"navy",
+    fontWeight:'bold',
+    fontSize:40,
+    
+  }, 
+  image: {
+    width: 270,
+    height: 270,
+    borderRadius: 75,
+    marginBottom: 20,
+  },
+  linkContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  linkText: {
+   color:"gray",
+    textDecorationLine: 'underline',
+    fontSize: 14,
   },
 });
