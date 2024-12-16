@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { KeyboardAvoidingView, StyleSheet, Text, TextInput, View, TouchableOpacity, Image, Alert } from 'react-native';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {Link} from "expo-router";
-import { firebaseAuth } from '../../firebaseConfig';
+import { firebaseAuth ,db} from '../../firebaseConfig';
+import { addDoc, collection } from 'firebase/firestore';
 
 
 
@@ -17,7 +18,14 @@ export default function Register() {
   setLoading(true);
   try{
     const response = await createUserWithEmailAndPassword(auth, email,password);
+    const user = response.user;
     console.log(response);
+    // Firestore'a kullanıcı ekleme
+    await addDoc(collection(db, 'users'), {
+      uid: user.uid,
+      email: user.email,
+      createdAt: new Date(),
+    });
     alert('Check your emails!');
 
   }catch(error){
@@ -44,7 +52,7 @@ export default function Register() {
           autoCapitalize="none"
           keyboardType="email-address"
           placeholder="Email"
-          placeholderTextColor="black"
+          placeholderTextColor="gray"
         />
         <TextInput
           style={styles.input}

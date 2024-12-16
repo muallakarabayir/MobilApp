@@ -1,8 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { Button, KeyboardAvoidingView, StyleSheet, Text, TextInput, View,TouchableOpacity,Image } from 'react-native';
-import auth from 'firebase/auth'
-import {FirebaseError} from 'firebase/app'
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import {Link} from 'expo-router';
 import {firebaseAuth} from '../../firebaseConfig'
@@ -64,7 +61,7 @@ export default function Index(){
       </TouchableOpacity>
         <View style={styles.linkContainer}>
         <Link href="/(tabs)/register" style={styles.linkText}>
-        Don't have an account? Sign Up!
+            Don't have an account? Sign Up!
         </Link>
         </View>
       </KeyboardAvoidingView>
