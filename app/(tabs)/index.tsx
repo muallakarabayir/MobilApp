@@ -17,6 +17,7 @@ export default function Index(){
     try{
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
+      alert('Sign In successful!');
       
     }catch(error : any){
       console.log(error);
