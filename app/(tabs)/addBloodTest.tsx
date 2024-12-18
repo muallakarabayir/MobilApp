@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, FlatList } from 'react-native';
+import { View,Dimensions, Text, TextInput, TouchableOpacity, StyleSheet, Alert, FlatList } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { ScrollView } from 'react-native';
+import DatePicker from '@/components/DateTimePicker';
 
 interface User{
     id:string;
     email: string;
 }
+const { height } = Dimensions.get('window');
 
 export default function AddBloodTest(){
     const [age, setAge] = useState('');
@@ -28,7 +30,7 @@ export default function AddBloodTest(){
    
     const [date, setDate] = useState('');
     const [loading, setLoading] = useState(false);
-    {/**jhgyf */}
+    
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const [isFetching, setIsFetching] = useState(true);
@@ -59,54 +61,82 @@ export default function AddBloodTest(){
       }
 
 
-    const handleAddTest = async () => {
-    if (!igG1 || !igG1 || !igG2 || !igG3 || !igG4 ||!igA || !igG|| !igA || !date || !selectedUserId || !tetanusToxoid|| !prp || !pheumococcus || !antiA || !antiB) {
-      Alert.alert('Error', 'Please fill out all fields and select a user.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Kan tahlilini Firestore'a ekle
-      await addDoc(collection(db, 'bloodTests'), {
-        userId: selectedUserId, // Seçilen kullanıcının ID'si
-        age,
-        igG,
-        igA,
-        igM,
-        igG1,
-        igG2,
-        igG3,
-        igG4,
-        tetanusToxoid,
-        prp,
-        pheumococcus,
-        antiA,
-        antiB,
-        date,
-      });
-
-      Alert.alert('Success', 'Blood test added successfully.');
-      setIgA('');
-      setIgG('');
-      setIG1('');
-      setIG2('');
-      setIG3('');
-      setIG4('');
-      setTetanusToxoid('');
-      setPrp('');
-      setPneumococcus('');
-      setAntiA('');
-      setAntiB('');
-      setDate('');
-    } catch (error) {
-      console.error('Error adding blood test:', error);
-      Alert.alert('Error', 'Failed to add blood test.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      const handleAddTest = async () => {
+        // Boş alanları kontrol etmek için bir dizi oluşturuyoruz
+        const emptyFields = [];
+        if (!age.trim()) emptyFields.push("Age");
+        if (!igG.trim()) emptyFields.push("IgG");
+        if (!igA.trim()) emptyFields.push("IgA");
+        if (!igM.trim()) emptyFields.push("IgM");
+        if (!igG1.trim()) emptyFields.push("IgG1");
+        if (!igG2.trim()) emptyFields.push("IgG2");
+        if (!igG3.trim()) emptyFields.push("IgG3");
+        if (!igG4.trim()) emptyFields.push("IgG4");
+        if (!tetanusToxoid.trim()) emptyFields.push("Tetanus Toxoid");
+        if (!prp.trim()) emptyFields.push("PRP");
+        if (!pheumococcus.trim()) emptyFields.push("Pneumococcus");
+        if (!antiA.trim()) emptyFields.push("Anti A");
+        if (!antiB.trim()) emptyFields.push("Anti B");
+        if (!date.trim()) emptyFields.push("Date");
+        if (!selectedUserId) emptyFields.push("Selected User");
+    
+        // Eğer boş alan varsa uyarı mesajı gösteriyoruz
+        if (emptyFields.length > 0) {
+            Alert.alert(
+                "Error",
+                `Please fill out the following fields:\n${emptyFields.join(", ")}`
+            );
+            return;
+        }
+    
+        setLoading(true);
+    
+        try {
+            // Kan tahlilini Firestore'a ekle
+            await addDoc(collection(db, "bloodTests"), {
+                userId: selectedUserId, // Seçilen kullanıcının ID'si
+                age,
+                igG,
+                igA,
+                igM,
+                igG1,
+                igG2,
+                igG3,
+                igG4,
+                tetanusToxoid,
+                prp,
+                pheumococcus,
+                antiA,
+                antiB,
+                date,
+            });
+            
+            Alert.alert("Success", "Blood test added successfully.");
+    
+            // Formu sıfırlamak
+            setAge("");
+            setIgG("");
+            setIgA("");
+            setIgM("");
+            setIG1("");
+            setIG2("");
+            setIG3("");
+            setIG4("");
+            setTetanusToxoid("");
+            setPrp("");
+            setPneumococcus("");
+            setAntiA("");
+            setAntiB("");
+            setDate("");
+            setSelectedUserId(null);
+        } catch (error) {
+            console.error("Error adding blood test:", error);
+            Alert.alert("Error", "Failed to add blood test.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    
     return(
         
         <View style={styles.container}>
@@ -128,17 +158,16 @@ export default function AddBloodTest(){
                 <Text style={styles.userText}>{item.email}</Text>
                 </TouchableOpacity>
                 )}
-            />
+             />
            </View>
         <ScrollView>
             {/* Form alanları */}
-           
             <TextInput
-            style={styles.input}
-            placeholder="Age"
-            value={age}
-            onChangeText={setAge}
-            placeholderTextColor="#888"
+                style={styles.input}
+                placeholder="Age"
+                value={age}
+                onChangeText={setAge}
+                placeholderTextColor="#888"
             />
             <TextInput
                 style={styles.input}
@@ -206,8 +235,8 @@ export default function AddBloodTest(){
             <TextInput
                 style={styles.input}
                 placeholder="Pneumococcus(ng/ml)"
-                value={tetanusToxoid}
-                onChangeText={setTetanusToxoid}
+                value={pheumococcus}
+                onChangeText={setPneumococcus}
                 placeholderTextColor="#888"
             />
             <TextInput
@@ -224,15 +253,16 @@ export default function AddBloodTest(){
                 onChangeText={setAntiB}
                 placeholderTextColor="#888"
             />
+
+                {/* Date Picker kullanımı */}
+            <DatePicker value={date} onChange={setDate} />
+
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={handleAddTest} disabled={loading}>
-                     <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add Test'}</Text>
+               <TouchableOpacity style={styles.button} onPress={handleAddTest} disabled={loading}>
+                    <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add Test'}</Text>
                 </TouchableOpacity>
             </View>
-        </ScrollView>
-
-        {/* Buton Ortada */}
-        
+        </ScrollView>    
         </View>
     
     )
@@ -248,6 +278,7 @@ const styles = StyleSheet.create({
       fontSize: 21,
       fontWeight: 'bold',
       textAlign: 'center',
+      marginTop:25,
       marginBottom: 10,
       color: '#333',
     },
