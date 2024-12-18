@@ -16,6 +16,13 @@ interface TestResult {
 
 const { height } = Dimensions.get('window');
 
+// Helper function to check if a value is high, low, or normal
+const getTestResultStatus = (value: number, referenceRange: [number, number]): string => {
+  if (value < referenceRange[0]) return 'Low';
+  if (value > referenceRange[1]) return 'High';
+  return 'Normal';
+};
+
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -60,6 +67,7 @@ export default function UserList() {
         testName: 'Blood Test Results',
         value: JSON.stringify(doc.data(), null, 2), // JSON verisini string formatında al
       }));
+      
 
       console.log('Fetched test results:', results);
       setTestResults(results);
@@ -78,7 +86,7 @@ export default function UserList() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Blood Tests</Text>
+      <Text style={styles.title}>Users</Text>
 
       {/* Kullanıcı Listesi */}
       <View style={styles.flatListContainer}>
