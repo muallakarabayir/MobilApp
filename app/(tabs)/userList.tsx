@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, Text, View, TouchableOpacity, Alert, ActivityIndicator, FlatList } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  FlatList,
+  ScrollView,
+} from 'react-native';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, query, where } from '@firebase/firestore';
 
@@ -16,13 +26,6 @@ interface TestResult {
 
 const { height } = Dimensions.get('window');
 
-// Helper function to check if a value is high, low, or normal
-const getTestResultStatus = (value: number, referenceRange: [number, number]): string => {
-  if (value < referenceRange[0]) return 'Low';
-  if (value > referenceRange[1]) return 'High';
-  return 'Normal';
-};
-
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -30,7 +33,6 @@ export default function UserList() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Kullanıcıları Firestore'dan çek
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -40,7 +42,6 @@ export default function UserList() {
           email: doc.data().email,
         }));
         setUsers(usersList);
-        console.log('Fetched users:', usersList); // Debugging log
       } catch (error) {
         console.error('Error fetching users:', error);
         Alert.alert('Error', 'Failed to fetch users.');
@@ -52,24 +53,21 @@ export default function UserList() {
     fetchUsers();
   }, []);
 
-  // Kullanıcının test sonuçlarını çek
   const fetchTestResults = async (userId: string) => {
     setLoading(true);
     try {
       const testResultsQuery = query(
-        collection(db, 'bloodTests'), // bloodTests koleksiyonu
-        where('userId', '==', userId) // userId'ye göre filtreleme
+        collection(db, 'bloodTests'),
+        where('userId', '==', userId)
       );
       const querySnapshot = await getDocs(testResultsQuery);
 
       const results: TestResult[] = querySnapshot.docs.map(doc => ({
         id: doc.id,
         testName: 'Blood Test Results',
-        value: JSON.stringify(doc.data(), null, 2), // JSON verisini string formatında al
+        value: JSON.stringify(doc.data(), null, 2),
       }));
-      
 
-      console.log('Fetched test results:', results);
       setTestResults(results);
     } catch (error) {
       console.error('Error fetching test results:', error);
@@ -81,14 +79,13 @@ export default function UserList() {
 
   const handleUserPress = (userId: string) => {
     setSelectedUserId(userId);
-    fetchTestResults(userId); // Seçilen kullanıcının test sonuçlarını getir
+    fetchTestResults(userId);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Users</Text>
 
-      {/* Kullanıcı Listesi */}
       <View style={styles.flatListContainer}>
         <FlatList
           data={users}
@@ -107,38 +104,40 @@ export default function UserList() {
         />
       </View>
 
-      {/* Test Sonuçları */}
       {selectedUserId && (
         <>
           <Text style={styles.subtitle}>Test Results</Text>
           {loading ? (
             <ActivityIndicator size="large" color="#0000ff" />
           ) : (
-            <FlatList
-              data={testResults}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => {
-                let parsedValue = {};
-                try {
-                  // JSON stringini parse et
-                  parsedValue = JSON.parse(item.value);
-                } catch (error) {
-                  console.error('Error parsing test result value:', error);
-                }
-              
-                return (
-                  <View style={styles.resultItem}>
-                    <Text style={styles.resultText}>{item.testName}</Text>
-                    {Object.entries(parsedValue).map(([key, val]) => (
-                      <Text key={key} style={styles.resultText}>
-                        {key}: {val !== undefined && val !== null ? String(val) : 'No value'}
-                      </Text>
-                    ))}
-                  </View>
-                );
-              }}
-              
-            />
+            <ScrollView>
+              <View style={styles.tableContainer}>
+                <View style={styles.tableHeader}>
+                  <Text style={[styles.tableHeaderText, styles.cell]}>Test Name</Text>
+                  <Text style={[styles.tableHeaderText, styles.cell]}>Value</Text>
+                </View>
+                {testResults.map((item, index) => {
+                  let parsedValue = {};
+                  try {
+                    parsedValue = JSON.parse(item.value);
+                  } catch (error) {
+                    console.error('Error parsing test result value:', error);
+                  }
+                  return (
+                    <View key={index}>
+                      {Object.entries(parsedValue).map(([key, val], idx) => (
+                        <View key={idx} style={styles.tableRow}>
+                          <Text style={[styles.tableRowText, styles.cell]}>{key}</Text>
+                          <Text style={[styles.tableRowText, styles.cell]}>
+                            {val !== undefined && val !== null ? String(val) : 'No value'}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })}
+              </View>
+            </ScrollView>
           )}
         </>
       )}
@@ -193,14 +192,34 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  resultItem: {
-    padding: 10,
-    marginBottom: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
+  tableContainer: {
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
   },
-  resultText: {
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#ddd',
+    padding: 10,
+  },
+  tableHeaderText: {
+    fontWeight: 'bold',
     fontSize: 16,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  tableRowText: {
+    fontSize: 14,
     color: '#333',
+  },
+  cell: {
+    flex: 1,
+    textAlign: 'center',
   },
 });
