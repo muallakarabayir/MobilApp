@@ -142,6 +142,7 @@ export default function AddBloodTest(){
         <View style={styles.container}>
            <Text style={styles.title}>Add Blood Test</Text>
            {/*Kullanıcı seçimi*/}
+           {/*Kullanıcı*/}
            {/* FlatList'i sınırlandırıyoruz */}
             <View style={styles.flatListContainer}>
             <FlatList
