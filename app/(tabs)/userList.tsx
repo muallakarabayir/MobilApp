@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
-  ScrollView,
+  Modal,
 } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, query, where } from '@firebase/firestore';
@@ -21,7 +21,7 @@ interface User {
 interface TestResult {
   id: string;
   testName: string;
-  value: string;
+  values: { [key: string]: string };
 }
 
 const { height } = Dimensions.get('window');
@@ -32,6 +32,8 @@ export default function UserList() {
   const [isFetching, setIsFetching] = useState(true);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedTest, setSelectedTest] = useState<TestResult | null>(null);
+  const [isModalVisible, setModalVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -64,8 +66,8 @@ export default function UserList() {
 
       const results: TestResult[] = querySnapshot.docs.map(doc => ({
         id: doc.id,
-        testName: 'Blood Test Results',
-        value: JSON.stringify(doc.data(), null, 2),
+        testName: `Test ${doc.id.substring(0, 5)}`,
+        values: doc.data(),
       }));
 
       setTestResults(results);
@@ -80,6 +82,64 @@ export default function UserList() {
   const handleUserPress = (userId: string) => {
     setSelectedUserId(userId);
     fetchTestResults(userId);
+  };
+
+  const handleTestPress = (test: TestResult) => {
+    setSelectedTest(test);
+    setModalVisible(true);
+  };
+
+  // Function to determine the status (Low/High/Normal)
+  const determineStatus = (testName: string, value: number) => {
+    // Normalize the test name (convert to lowercase)
+    const normalizedTestName = testName.toLowerCase();
+  
+    const ranges: { [key: string]: { low: number; high: number } } = {
+      igg: { low: 470, high: 1300 },
+      iga: { low: 50, high: 400 },
+      igm: { low: 50, high: 300 },
+      igg1: { low: 30, high: 1000 },
+      igg2: { low: 30, high: 1000 },
+      igg3: { low: 30, high: 1000 },
+      igg4: { low: 30, high: 1000 },
+      tetanustoxoid: { low: 0.1, high: 5 },
+      prp: { low: 0, high: 5 },
+      pneumococcus: { low: 0, high: 5 },
+      antia: { low: 0, high: 100 },
+      antib: { low: 0, high: 100 },
+    };
+  
+    // Check if the normalized test name exists in ranges
+    if (ranges[normalizedTestName]) {
+      if (value < ranges[normalizedTestName].low) return 'Low';
+      if (value > ranges[normalizedTestName].high) return 'High';
+      return 'Normal';
+    }
+  
+    return 'Unknown'; // If no range is defined
+  };
+  
+  const renderTestValues = (values: { [key: string]: string }) => {
+    return (
+      <FlatList
+        data={Object.entries(values)}
+        keyExtractor={(item) => item[0]}
+        renderItem={({ item }) => {
+          const testName = item[0];
+          const value = parseFloat(item[1]);
+
+          const status = determineStatus(testName, value);
+
+          return (
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>{testName}</Text>
+              <Text style={styles.tableCell}>{item[1]}</Text>
+              <Text style={styles.tableCell}>{status}</Text>
+            </View>
+          );
+        }}
+      />
+    );
   };
 
   return (
@@ -110,37 +170,47 @@ export default function UserList() {
           {loading ? (
             <ActivityIndicator size="large" color="#0000ff" />
           ) : (
-            <ScrollView>
-              <View style={styles.tableContainer}>
-                <View style={styles.tableHeader}>
-                  <Text style={[styles.tableHeaderText, styles.cell]}>Test Name</Text>
-                  <Text style={[styles.tableHeaderText, styles.cell]}>Value</Text>
-                </View>
-                {testResults.map((item, index) => {
-                  let parsedValue = {};
-                  try {
-                    parsedValue = JSON.parse(item.value);
-                  } catch (error) {
-                    console.error('Error parsing test result value:', error);
-                  }
-                  return (
-                    <View key={index}>
-                      {Object.entries(parsedValue).map(([key, val], idx) => (
-                        <View key={idx} style={styles.tableRow}>
-                          <Text style={[styles.tableRowText, styles.cell]}>{key}</Text>
-                          <Text style={[styles.tableRowText, styles.cell]}>
-                            {val !== undefined && val !== null ? String(val) : 'No value'}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  );
-                })}
-              </View>
-            </ScrollView>
+            <View style={styles.testButtonsContainer}>
+              {testResults.map((test) => (
+                <TouchableOpacity
+                  key={test.id}
+                  style={styles.testButton}
+                  onPress={() => handleTestPress(test)}
+                >
+                  <Text style={styles.testButtonText}>{test.testName}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
         </>
       )}
+
+      {/* Modal for test details */}
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedTest && (
+              <>
+                <Text style={styles.modalTitle}>{selectedTest.testName}</Text>
+                <View style={styles.table}>
+                  {renderTestValues(selectedTest.values)}
+                </View>
+              </>
+            )}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -192,34 +262,62 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  tableContainer: {
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+  testButtonsContainer: {
+    marginTop: 10,
+    alignItems: 'center',
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#ddd',
-    padding: 10,
+  testButton: {
+    backgroundColor: 'navy',
+    padding: 15,
+    borderRadius: 25,
+    marginVertical: 5,
+    width: 200,
+    alignItems: 'center',
   },
-  tableHeaderText: {
-    fontWeight: 'bold',
+  testButtonText: {
     fontSize: 16,
+    color: '#fff',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  table: {
+    marginTop: 20,
   },
   tableRow: {
     flexDirection: 'row',
-    padding: 10,
+    paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#ccc',
   },
-  tableRowText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  cell: {
+  tableCell: {
     flex: 1,
-    textAlign: 'center',
+    fontSize: 16,
+    padding: 5,
+  },
+  closeButton: {
+    backgroundColor: 'navy',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
