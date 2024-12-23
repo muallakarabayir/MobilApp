@@ -16,6 +16,7 @@ import { collection, getDocs, query, where } from '@firebase/firestore';
 interface User {
   id: string;
   email: string;
+  age: number; // Yaşı artık direkt Firebase'den alacağız.
 }
 
 interface TestResult {
@@ -23,6 +24,113 @@ interface TestResult {
   testName: string;
   values: { [key: string]: string };
 }
+
+const ranges: { [key: string]: { ageRange: string; low: number; high: number }[] } = {
+  igG: [
+    { ageRange: '0-1', low: 700, high: 1300 },
+    { ageRange: '1-4', low: 280, high: 750 },
+    { ageRange: '4-7', low: 200, high: 1200 },
+    { ageRange: '7-13', low: 300, high: 1500 },
+    { ageRange: '13-36', low: 400, high: 1300 },
+    { ageRange: '36-72', low: 600, high: 1500 },
+    { ageRange: '72-1200', low: 639, high: 1344 },
+  ],
+  igA: [
+    { ageRange: '0-1', low: 0, high: 11 },
+    { ageRange: '1-4', low: 6, high: 50 },
+    { ageRange: '4-7', low: 8, high: 90 },
+    { ageRange: '7-13', low: 16, high: 100 },
+    { ageRange: '13-36', low: 20, high: 230 },
+    { ageRange: '36-72', low: 50, high: 150 },
+    { ageRange: '72-1200', low: 70, high: 312 },
+  ],
+  igM: [
+    { ageRange: '0-1', low: 700, high: 1300 },
+    { ageRange: '1-4', low: 280, high: 750 },
+    { ageRange: '4-7', low: 200, high: 1200 },
+    { ageRange: '7-13', low: 300, high: 1500 },
+    { ageRange: '13-36', low: 400, high: 1300 },
+    { ageRange: '36-72', low: 600, high: 1500 },
+    { ageRange: '72-1200', low: 639, high: 1344 },
+  ],
+  igG1: [
+    { ageRange: '0-3', low: 700, high: 1300 },
+    { ageRange: '3-6', low: 280, high: 750 },
+    { ageRange: '6-9', low: 200, high: 1200 },
+    { ageRange: '9-24', low: 300, high: 1500 },
+    { ageRange: '24-48', low: 400, high: 1300 },
+    { ageRange: '48-72', low: 600, high: 1500 },
+    { ageRange: '72-96', low: 639, high: 1344 },
+    { ageRange: '96-120', low: 639, high: 1344 },
+    { ageRange: '120-168', low: 639, high: 1344 },
+    { ageRange: '168-1200', low: 422, high: 1292 },
+
+  ],
+  igG2: [
+    { ageRange: '0-3', low: 40, high: 167 },
+    { ageRange: '3-6', low: 23, high: 147 },
+    { ageRange: '6-9', low: 37, high: 60 },
+    { ageRange: '9-24', low: 30, high: 327 },
+    { ageRange: '24-48', low: 70, high: 443},
+    { ageRange: '48-72', low: 113, high: 480 },
+    { ageRange: '72-96', low: 163, high: 513 },
+    { ageRange: '96-120', low: 147, high: 493 },
+    { ageRange: '120-168', low: 140, high: 440},
+    { ageRange: '168-1200', low: 117, high: 747 },
+
+  ],
+  igG3: [
+    { ageRange: '0-3', low: 4, high: 23 },
+    { ageRange: '3-6', low:4, high: 100 },
+    { ageRange: '6-9', low: 12, high: 62},
+    { ageRange: '9-24', low: 13, high: 82 },
+    { ageRange: '24-48', low: 17, high: 90},
+    { ageRange: '48-72', low: 8, high: 111 },
+    { ageRange: '72-96', low: 15, high: 113 },
+    { ageRange: '96-120', low: 12, high: 179 },
+    { ageRange: '120-168', low: 23, high: 117},
+    { ageRange: '168-1200', low: 41, high: 129 },
+
+  ],
+  igG4: [
+    { ageRange: '0-3', low: 1, high: 120 },
+    { ageRange: '3-6', low: 1, high: 120 },
+    { ageRange: '6-9', low: 1, high: 120 },
+    { ageRange: '9-24', low: 1, high: 120 },
+    { ageRange: '24-48', low: 1, high: 120},
+    { ageRange: '48-72', low: 2, high: 138 },
+    { ageRange: '72-96', low: 1, high: 95 },
+    { ageRange: '96-120', low: 1, high: 153 },
+    { ageRange: '120-168', low: 1, high: 143},
+    { ageRange: '168-1200', low: 10, high: 67 },
+
+  ],
+  antiA: [
+    { ageRange: '0-1', low: 10, high: 20 },
+    { ageRange: '1-4', low: 15, high: 30 },
+    // Diğer yaş aralıkları
+  ],
+  antiB: [
+    { ageRange: '0-1', low: 10, high: 20 },
+    { ageRange: '1-4', low: 15, high: 30 },
+    // Diğer yaş aralıkları
+  ],
+  prp: [
+    { ageRange: '0-1', low: 5, high: 15 },
+    { ageRange: '1-4', low: 10, high: 25 },
+    // Diğer yaş aralıkları
+  ],
+  pheumococcus: [
+    { ageRange: '0-1', low: 5, high: 15 },
+    { ageRange: '1-4', low: 10, high: 25 },
+    // Diğer yaş aralıkları
+  ],
+  tetanusToxoid: [
+    { ageRange: '0-1', low: 5, high: 15 },
+    { ageRange: '1-4', low: 10, high: 25 },
+    // Diğer yaş aralıkları
+  ],
+};
 
 const { height } = Dimensions.get('window');
 
@@ -42,6 +150,7 @@ export default function UserList() {
         const usersList: User[] = querySnapshot.docs.map(doc => ({
           id: doc.id,
           email: doc.data().email,
+          age: parseInt(doc.data().age), // Firebase'den yaş bilgisini alıyoruz.
         }));
         setUsers(usersList);
       } catch (error) {
@@ -67,6 +176,7 @@ export default function UserList() {
       const results: TestResult[] = querySnapshot.docs.map(doc => ({
         id: doc.id,
         testName: `Test ${doc.id.substring(0, 5)}`,
+
         values: doc.data(),
       }));
 
@@ -79,56 +189,45 @@ export default function UserList() {
     }
   };
 
-  const handleUserPress = (userId: string) => {
-    setSelectedUserId(userId);
-    fetchTestResults(userId);
-  };
+  const getRangeByAge = (testName: string, age: number) => {
 
-  const handleTestPress = (test: TestResult) => {
-    setSelectedTest(test);
-    setModalVisible(true);
-  };
-
-  // Function to determine the status (Low/High/Normal)
-  const determineStatus = (testName: string, value: number) => {
-    // Normalize the test name (convert to lowercase)
-    const normalizedTestName = testName.toLowerCase();
-  
-    const ranges: { [key: string]: { low: number; high: number } } = {
-      igg: { low: 470, high: 1300 },
-      iga: { low: 50, high: 400 },
-      igm: { low: 50, high: 300 },
-      igg1: { low: 30, high: 1000 },
-      igg2: { low: 30, high: 1000 },
-      igg3: { low: 30, high: 1000 },
-      igg4: { low: 30, high: 1000 },
-      tetanustoxoid: { low: 0.1, high: 5 },
-      prp: { low: 0, high: 5 },
-      pneumococcus: { low: 0, high: 5 },
-      antia: { low: 0, high: 100 },
-      antib: { low: 0, high: 100 },
-    };
-  
-    // Check if the normalized test name exists in ranges
-    if (ranges[normalizedTestName]) {
-      if (value < ranges[normalizedTestName].low) return 'Low';
-      if (value > ranges[normalizedTestName].high) return 'High';
-      return 'Normal';
+    const testRanges = ranges[testName.toLowerCase()];
+    if (!testRanges) {
+      console.warn(`No ranges defined for test: ${testName}`);
+      return null;
     }
   
-    return 'Unknown'; // If no range is defined
+    const ageInMonths = age * 12; // Yaşı ay cinsine çevir
+    for (const range of testRanges) {
+      const [minAge, maxAge] = range.ageRange.split('-').map(Number);
+      if (ageInMonths >= minAge && ageInMonths <= maxAge) {
+        return range;
+      }
+    }
+  
+    return null;
   };
   
-  const renderTestValues = (values: { [key: string]: string }) => {
+
+  const determineStatus = (testName: string, age: number, value: number) => {
+    const range = getRangeByAge(testName, age);
+    if (!range) return 'Unknown';
+
+    if (value < range.low) return 'Low';
+    if (value > range.high) return 'High';
+    return 'Normal';
+  };
+
+  const renderTestValues = (values: { [key: string]: string }, userAge: number) => {
     return (
       <FlatList
-        data={Object.entries(values)}
+        data={Object.entries(values).filter(([key]) => key !== 'userId' && key !== 'age' && key !== 'date')}
         keyExtractor={(item) => item[0]}
         renderItem={({ item }) => {
           const testName = item[0];
           const value = parseFloat(item[1]);
 
-          const status = determineStatus(testName, value);
+          const status = determineStatus(testName, userAge, value);
 
           return (
             <View style={styles.tableRow}>
@@ -141,27 +240,33 @@ export default function UserList() {
       />
     );
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Users</Text>
 
       <View style={styles.flatListContainer}>
-        <FlatList
-          data={users}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.userItem,
-                selectedUserId === item.id && styles.selectedUser,
-              ]}
-              onPress={() => handleUserPress(item.id)}
-            >
-              <Text style={styles.userText}>{item.email}</Text>
-            </TouchableOpacity>
-          )}
-        />
+        {isFetching ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <FlatList
+            data={users}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.userItem,
+                  selectedUserId === item.id && styles.selectedUser,
+                ]}
+                onPress={() => {
+                  setSelectedUserId(item.id);
+                  fetchTestResults(item.id);
+                }}
+              >
+                <Text style={styles.userText}>{item.email}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
 
       {selectedUserId && (
@@ -175,7 +280,10 @@ export default function UserList() {
                 <TouchableOpacity
                   key={test.id}
                   style={styles.testButton}
-                  onPress={() => handleTestPress(test)}
+                  onPress={() => {
+                    setSelectedTest(test);
+                    setModalVisible(true);
+                  }}
                 >
                   <Text style={styles.testButtonText}>{test.testName}</Text>
                 </TouchableOpacity>
@@ -185,7 +293,6 @@ export default function UserList() {
         </>
       )}
 
-      {/* Modal for test details */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
@@ -198,7 +305,8 @@ export default function UserList() {
               <>
                 <Text style={styles.modalTitle}>{selectedTest.testName}</Text>
                 <View style={styles.table}>
-                  {renderTestValues(selectedTest.values)}
+                  {users.find(user => user.id === selectedUserId) &&
+                    renderTestValues(selectedTest.values, users.find(user => user.id === selectedUserId)!.age)}
                 </View>
               </>
             )}
@@ -214,7 +322,6 @@ export default function UserList() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
