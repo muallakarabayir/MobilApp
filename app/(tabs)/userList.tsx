@@ -190,32 +190,38 @@ export default function UserList() {
   };
 
   const getRangeByAge = (testName: string, age: number) => {
-
-    const testRanges = ranges[testName.toLowerCase()];
-    if (!testRanges) {
-      console.warn(`No ranges defined for test: ${testName}`);
-      return null;
+    const testRanges = ranges[testName]; // ranges objesinden testin aralıklarını alıyoruz.
+    {
+      console.log(`No ranges found for test: ${testName}`);
+      return null; // Eğer test adı ranges içinde yoksa, null döner.
     }
   
-    const ageInMonths = age * 12; // Yaşı ay cinsine çevir
-    for (const range of testRanges) {
-      const [minAge, maxAge] = range.ageRange.split('-').map(Number);
-      if (ageInMonths >= minAge && ageInMonths <= maxAge) {
-        return range;
+    // Yaş aralığını buluyoruz
+    for (let range of testRanges) {
+      const [lowAge, highAge] = range.ageRange.split('-').map(Number);
+      if (age >= lowAge && age <= highAge) {
+        return range; // Yaşa uygun aralığı bulup döndürüyoruz.
       }
     }
-  
     return null;
+    
   };
   
 
   const determineStatus = (testName: string, age: number, value: number) => {
     const range = getRangeByAge(testName, age);
-    if (!range) return 'Unknown';
+  if (!range) return 'No range available'; // Eğer yaş aralığı bulunamazsa.
 
-    if (value < range.low) return 'Low';
-    if (value > range.high) return 'High';
+  const { low, high } = range;
+
+  // Kan testi değerini karşılaştırıyoruz
+  if (value < low) {
+    return 'Low';
+  } else if (value > high) {
+    return 'High';
+  } else {
     return 'Normal';
+  }
   };
 
   const renderTestValues = (values: { [key: string]: string }, userAge: number) => {
@@ -226,9 +232,9 @@ export default function UserList() {
         renderItem={({ item }) => {
           const testName = item[0];
           const value = parseFloat(item[1]);
-
+  
           const status = determineStatus(testName, userAge, value);
-
+  
           return (
             <View style={styles.tableRow}>
               <Text style={styles.tableCell}>{testName}</Text>
@@ -240,6 +246,7 @@ export default function UserList() {
       />
     );
   };
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Users</Text>
