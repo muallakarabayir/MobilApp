@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button, KeyboardAvoidingView, StyleSheet, Text, TextInput, View,TouchableOpacity,Image } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import {Link} from 'expo-router';
-import {firebaseAuth} from '../../firebaseConfig'
+import {Link, useRouter} from 'expo-router';
+import {firebaseAuth, db} from '../../firebaseConfig'
 
 
 export default function Index(){
@@ -10,6 +10,7 @@ export default function Index(){
   const [password,setPassword]= useState('');
   const[loading,setLoading]=useState(false);
   const auth= firebaseAuth;
+  const router= useRouter();
 
   const signIn = async () =>{
     setLoading(true);
@@ -17,6 +18,10 @@ export default function Index(){
     try{
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
+
+      router.push('/(tabs)/userPage')
+      
+      alert('Sign In successful!');
       
     }catch(error : any){
       console.log(error);
