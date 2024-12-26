@@ -12,6 +12,7 @@ const firebaseConfig = {
     messagingSenderId: "947510277550",
     appId: "1:947510277550:web:50d2f38006edec774d443f",
     measurementId: "G-H3CN8BK9NH"
+    //deneme commit
 };
 
 // Initialize Firebase
