@@ -12,7 +12,7 @@ import { ThemedText } from '@/components/ThemedText';
 
 export function HelloWave() {
   const rotationAnimation = useSharedValue(0);
-
+//styling massages
   useEffect(() => {
     rotationAnimation.value = withRepeat(
       withSequence(withTiming(25, { duration: 150 }), withTiming(0, { duration: 150 })),
