@@ -173,3 +173,29 @@ export const ranges = {
 
     }
 };
+
+import { db } from './firebase/firebaseConfig';
+import { setDoc, doc } from "firebase/firestore";
+
+async function uploadRangesToFirestore() {
+    try {
+        // ranges içerisindeki her rehber için
+        for (const [guideName, guideData] of Object.entries(ranges)) {
+            const guideDocRef = doc(db, "ranges", guideName);
+
+            // Rehber altındaki değerleri yüklemek için
+            const formattedData = {};
+            for (const [key, value] of Object.entries(guideData)) {
+                formattedData[key] = value;
+            }
+
+            // Firestore'a doküman ekle
+            await setDoc(guideDocRef, formattedData);
+            console.log(`Rehber "${guideName}" başarıyla eklendi.`);
+        }
+    } catch (error) {
+        console.error("Veri eklenirken bir hata oluştu:", error);
+    }
+}
+
+uploadRangesToFirestore();

@@ -103,8 +103,7 @@ export default function UserList() {
                   onPress={() => {
                     setModalVisible(false); // Close the modal
                     // Navigate to "Details" screen with test details and user age
-                    navigation.navigate("Details", {
-                      
+                    navigation.navigate('Details', {
                       testName: testName,
                       testValue: value,
                       userAge: userAge,
@@ -125,7 +124,7 @@ export default function UserList() {
     <View style={styles.container}>
       <View style={styles.flatListContainer}>
         {isFetching ? (
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#7f44ff" />
         ) : (
           <FlatList
             data={users}
@@ -149,7 +148,7 @@ export default function UserList() {
         <>
           <Text style={styles.subtitle}>Test Results</Text>
           {loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
+            <ActivityIndicator size="large" color="#7f44ff" />
           ) : (
             <View style={styles.testButtonsContainer}>
               {testResults.map((test) => (
@@ -182,8 +181,6 @@ export default function UserList() {
               <>
                 <Text style={styles.modalTitle}>{selectedTest.testName}</Text>
 
-               
-
                 {/* Display the test results */}
                 <View style={styles.table}>
                   {selectedTest && renderTestValues(selectedTest.values)}
@@ -207,9 +204,8 @@ export default function UserList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     backgroundColor: '#fff',
-    alignContent: 'center',
   },
   title: {
     fontSize: 24,
@@ -227,11 +223,9 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   flatListContainer: {
-    maxHeight: '70%',
+    flex: 1,
     marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: '#f9f9f9',
     padding: 10,
   },
@@ -256,11 +250,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   testButton: {
-    backgroundColor: 'navy',
+    backgroundColor: '#0066cc',
     padding: 15,
     borderRadius: 25,
     marginVertical: 5,
-    width: 200,
+    width: 250,
     alignItems: 'center',
   },
   testButtonText: {
@@ -277,43 +271,46 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
-    maxHeight:'75%'
+    width: '85%',
+    maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   table: {
     marginTop: 20,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 5,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
   tableCell: {
     flex: 1,
     fontSize: 16,
-    padding: 5,
+    padding: 10,
   },
   closeButton: {
-    backgroundColor: 'navy',
-    padding: 10,
+    backgroundColor: '#0066cc',
+    padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 15,
   },
   button: {
-    backgroundColor: 'navy',
+    backgroundColor: '#0066cc',
     padding: 10,
     borderRadius: 30,
     alignItems: 'center',
     width: 300,
+    height:40,
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 16,
   },
 });

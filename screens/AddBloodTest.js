@@ -18,8 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 const { height } = Dimensions.get('window');
 
 export default function AddBloodTest() {
-
-   const navigation = useNavigation();
+  const navigation = useNavigation();
   const [igg, setIgG] = useState('');
   const [iga, setIgA] = useState('');
   const [igm, setIgM] = useState('');
@@ -42,7 +41,6 @@ export default function AddBloodTest() {
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
 
-  // Fetch users from the database
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -52,7 +50,7 @@ export default function AddBloodTest() {
           return {
             id: doc.id,
             email: data.email,
-            birthDate: data.birthDate || null, // Add birthDate for age calculation
+            birthDate: data.birthDate || null, 
           };
         });
         setUsers(usersList);
@@ -67,7 +65,6 @@ export default function AddBloodTest() {
     fetchUsers();
   }, []);
 
-  // Calculate user's age in months from birthDate
   const calculateAgeInMonths = (birthDate) => {
     if (!birthDate) return null;
     const birth = new Date(birthDate);
@@ -83,7 +80,6 @@ export default function AddBloodTest() {
     setSelectedUser(user);
   };
 
-  // Handle the date selection
   const handleDateChange = () => {
     if (year && month && day) {
       const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -144,7 +140,6 @@ export default function AddBloodTest() {
 
       Alert.alert('Success', 'Blood test added successfully.');
 
-      // Reset form fields
       setIgG('');
       setIgA('');
       setIgM('');
@@ -179,126 +174,41 @@ export default function AddBloodTest() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={[
-                styles.userItem,
-                selectedUser?.id === item.id && styles.selectedUser,
-              ]}
+              style={[styles.userItem, selectedUser?.id === item.id && styles.selectedUser]}
               onPress={() => handleUserSelection(item.id)}
             >
               <Text style={styles.userText}>{item.email}</Text>
             </TouchableOpacity>
           )}
         />
-         <View style={{ justifyContent:"center",alignItems:"center",backgroundColor:'navy',borderRadius:20,height:40,width:100}}>
-      <TouchableOpacity
-      onPress={() =>{ navigation.navigate('Create User')}}
-      >
-      <Text style={{fontSize:18,color:"white"}}>Create User</Text>
-      </TouchableOpacity>
-      
-    </View>
+        <View style={styles.createUserButton}>
+          <TouchableOpacity onPress={() => navigation.navigate('Create User')}>
+            <Text style={styles.createUserText}>Create User</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    
-      <ScrollView>
-        <TextInput
-          style={styles.input}
-          placeholder="IgG (mg/dl)"
-          value={igg}
-          onChangeText={setIgG}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgA (mg/dl)"
-          value={iga}
-          onChangeText={setIgA}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgM (mg/dl)"
-          value={igm}
-          onChangeText={setIgM}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgG1 (mg/dl)"
-          value={igg1}
-          onChangeText={setIG1}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgG2 (mg/dl)"
-          value={igg2}
-          onChangeText={setIG2}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgG3 (mg/dl)"
-          value={igg3}
-          onChangeText={setIG3}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="IgG4 (mg/dl)"
-          value={igg4}
-          onChangeText={setIG4}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Tetanus Toxoid (IU/ml)"
-          value={tetanustoxoid}
-          onChangeText={setTetanusToxoid}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="PRP (HIB) (ng/ml)"
-          value={prp}
-          onChangeText={setPrp}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Pneumococcus (ng/ml)"
-          value={pheumococcus}
-          onChangeText={setPneumococcus}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Isohemagglutinin Titer Anti A"
-          value={antia}
-          onChangeText={setAntiA}
-          placeholderTextColor="#888"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Isohemagglutinin Titer Anti B"
-          value={antib}
-          onChangeText={setAntiB}
-          placeholderTextColor="#888"
-        />
 
-        {/* Date Picker Modal */}
+      <ScrollView contentContainerStyle={styles.form}>
+        <TextInput style={styles.input} placeholder="IgG (mg/dl)" value={igg} onChangeText={setIgG} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgA (mg/dl)" value={iga} onChangeText={setIgA} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgM (mg/dl)" value={igm} onChangeText={setIgM} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgG1 (mg/dl)" value={igg1} onChangeText={setIG1} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgG2 (mg/dl)" value={igg2} onChangeText={setIG2} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgG3 (mg/dl)" value={igg3} onChangeText={setIG3} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="IgG4 (mg/dl)" value={igg4} onChangeText={setIG4} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="Tetanus Toxoid (IU/ml)" value={tetanustoxoid} onChangeText={setTetanusToxoid} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="PRP (HIB) (ng/ml)" value={prp} onChangeText={setPrp} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="Pneumococcus (ng/ml)" value={pheumococcus} onChangeText={setPneumococcus} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="Isohemagglutinin Titer Anti A" value={antia} onChangeText={setAntiA} placeholderTextColor="#888" />
+        <TextInput style={styles.input} placeholder="Isohemagglutinin Titer Anti B" value={antib} onChangeText={setAntiB} placeholderTextColor="#888" />
+
         <TouchableOpacity onPress={() => setIsDateModalVisible(true)} style={styles.dateButton}>
           <Text style={styles.dateText}>{date || 'Select Date'}</Text>
         </TouchableOpacity>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleAddTest}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Adding...' : 'Add Test'}
-            </Text>
+          <TouchableOpacity style={styles.button} onPress={handleAddTest} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add Test'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -358,44 +268,82 @@ export default function AddBloodTest() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
   },
-  title: {
-    fontSize: 21,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 25,
+  flatListContainer: {
+    marginBottom: 20,
+  },
+  userItem: {
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  selectedUser: {
+    backgroundColor: '#d1e7dd',
+  },
+  userText: {
+    fontSize: 16,
+    fontWeight: '500',
     color: '#333',
   },
+  createUserButton: {
+    alignItems: 'center',
+    backgroundColor: '#0066cc',
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginTop: 10,
+  },
+  createUserText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  form: {
+    marginBottom: 30,
+  },
   input: {
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ddd',
-    padding: 10,
+    padding: 12,
     marginVertical: 8,
-    borderRadius: 5,
+    borderRadius: 10,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   buttonContainer: {
-    alignItems: 'center',
     marginTop: 20,
+    alignItems: 'center',
   },
   button: {
-    backgroundColor: 'navy',
+    backgroundColor: '#0066cc',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
   },
   dateButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 5,
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    alignItems: 'center',
   },
   dateText: {
     fontSize: 16,
@@ -408,27 +356,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     alignItems: 'center',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
   },
   dateInput: {
     width: 60,
-    padding: 5,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#ddd',
     marginHorizontal: 5,
+    borderRadius: 10,
+    fontSize: 16,
     textAlign: 'center',
   },
   smallInput: {
@@ -437,26 +388,11 @@ const styles = StyleSheet.create({
   separator: {
     fontSize: 18,
     marginHorizontal: 5,
+    color: '#333',
   },
   modalButtons: {
-    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-  },
-  flatListContainer: {
-    marginBottom: 20,
-  },
-  userItem: {
-    padding: 15,
-    backgroundColor: '#f1f1f1',
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  userText: {
-    fontSize: 16,
-  },
-  selectedUser: {
-    backgroundColor: '#d1e7dd',
   },
 });
