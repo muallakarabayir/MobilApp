@@ -13,9 +13,12 @@ import Results from './screens/ResultScreen';
 import UserCompareScreen from './screens/UserCompareScreen';
 import UserResultScreen from './screens/UserResultScreen';
 import AdminAssign from './screens/AdminAssignScreen';
-
+import CreateGuide from './screens/CreateGuideScreen';
+import CreateUser from './screens/CreateUserScreen';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+
+
 
 // Create Drawer navigation
 const Drawer = createDrawerNavigator();
@@ -108,10 +111,13 @@ export default function App() {
         {isAdmin && (
           <>
           <Drawer.Screen name="Add Blood Test" component={AddBloodTest} />
+          <Drawer.Screen name='Create User' component={CreateUser}/>
           <Drawer.Screen name="User List" component={UserList} />
           <Drawer.Screen name="Admin Assign" component={AdminAssign} />
           <Drawer.Screen name="Compare" component={CompareScreen} />
         <Drawer.Screen name="User Compare" component={UserCompareScreen} />
+        <Drawer.Screen name="Create Guide" component={CreateGuide}/>
+
         <Drawer.Screen 
           name="Results" 
           component={Results}

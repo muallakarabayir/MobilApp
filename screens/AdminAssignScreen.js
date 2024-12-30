@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Text, StyleSheet, FlatList, TouchableOpacity, Alert, View } from 'react-native';
-import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc} from 'firebase/firestore';
 
 const AdminAssign = () => {
   const [users, setUsers] = useState([]);  // Kullanıcıları tutacak state
@@ -96,6 +96,24 @@ const AdminAssign = () => {
     }
   }
 
+  const handleDeleteUser = async () => {
+    if (selectedUserId) {
+      try {
+        const userRef = doc(db, 'users', selectedUserId);
+        await deleteDoc(userRef);
+        Alert.alert('Başarılı', 'Kullanıcı başarıyla silindi.');
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== selectedUserId));
+        setSelectedUserId(null);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        Alert.alert('Hata', 'Kullanıcı silinirken bir hata oluştu.');
+      }
+    } else {
+      Alert.alert('Hata', 'Lütfen bir kullanıcı seçin.');
+    }
+  };
+
   // Kullanıcı listesi elemanını render etme
   const renderUserItem = ({ item }) => (
     <TouchableOpacity
@@ -135,6 +153,9 @@ const AdminAssign = () => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.assignButton} onPress={takeAdminRole}>
             <Text style={styles.assignButtonText}>Take admin role</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.assignButton} onPress={handleDeleteUser}>
+            <Text style={styles.assignButtonText}>Delete User</Text>
           </TouchableOpacity>
 
           {selectedUser && (

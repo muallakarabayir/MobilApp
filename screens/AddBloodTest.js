@@ -14,10 +14,12 @@ import {
 } from 'react-native';
 import { addDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig.js';
-
+import { useNavigation } from '@react-navigation/native';
 const { height } = Dimensions.get('window');
 
 export default function AddBloodTest() {
+
+   const navigation = useNavigation();
   const [igg, setIgG] = useState('');
   const [iga, setIgA] = useState('');
   const [igm, setIgM] = useState('');
@@ -187,7 +189,16 @@ export default function AddBloodTest() {
             </TouchableOpacity>
           )}
         />
+         <View style={{ justifyContent:"center",alignItems:"center",backgroundColor:'navy',borderRadius:20,height:40,width:100}}>
+      <TouchableOpacity
+      onPress={() =>{ navigation.navigate('Create User')}}
+      >
+      <Text style={{fontSize:18,color:"white"}}>Create User</Text>
+      </TouchableOpacity>
+      
+    </View>
       </View>
+    
       <ScrollView>
         <TextInput
           style={styles.input}
