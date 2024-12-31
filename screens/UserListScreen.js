@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  TextInput,
 } from 'react-native';
 import { db } from '../firebase/firebaseConfig.js';
 import { collection, getDocs, query, where } from '@firebase/firestore';
@@ -20,6 +21,7 @@ export default function UserList() {
   const navigation = useNavigation();
 
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isFetching, setIsFetching] = useState(true);
   const [testResults, setTestResults] = useState([]);
@@ -27,6 +29,8 @@ export default function UserList() {
   const [selectedTest, setSelectedTest] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [userAge, setUserAge] = useState(null);
+  const [userCreatedAt, setUserCreatedAt] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetching users from Firebase
   useEffect(() => {
@@ -37,9 +41,16 @@ export default function UserList() {
           return {
             id: doc.id,
             email: doc.data().email,
+            username: doc.data().username,
+            birthDate: doc.data().birthDate,
+            createdAt: doc.data().createdAt,
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
+            isAdmin: doc.data().isAdmin,
           };
         });
         setUsers(usersList);
+        setFilteredUsers(usersList); // Initially set the filtered list to all users
       } catch (error) {
         console.error('Error fetching users:', error);
         Alert.alert('Error', 'Failed to fetch users.');
@@ -50,6 +61,40 @@ export default function UserList() {
 
     fetchUsers();
   }, []);
+
+// Search users by username or email
+const handleSearch = (text) => {
+  setSearchQuery(text);
+
+  if (text) {
+    const filtered = users.filter(user =>
+      (user.username && user.username.toLowerCase().includes(text.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(text.toLowerCase()))
+    );
+    setFilteredUsers(filtered);
+  } else {
+    setFilteredUsers(users); // Reset to all users if search is cleared
+  }
+};
+
+
+  // Calculate the age based on birthDate
+  const calculateAge = (birthDate) => {
+    const birthDateObj = new Date(birthDate);
+    const today = new Date();
+    const age = today.getFullYear() - birthDateObj.getFullYear();
+    const month = today.getMonth() - birthDateObj.getMonth();
+    if (month < 0 || (month === 0 && today.getDate() < birthDateObj.getDate())) {
+      return age - 1;
+    }
+    return age;
+  };
+
+  // Format createdAt to a readable date
+  const formatCreatedAt = (timestamp) => {
+    const date = timestamp.toDate(); // Convert Firestore timestamp to JS Date
+    return date.toLocaleString(); // Use toLocaleString for readable format
+  };
 
   // Fetching test results and age from the bloodTests collection
   const fetchTestResults = async (userId) => {
@@ -67,11 +112,12 @@ export default function UserList() {
         values: doc.data(),
       }));
 
-      // Fetching age from the first test document found (assuming age is stored here)
-      const firstTestDoc = querySnapshot.docs[0];
-      if (firstTestDoc) {
-        const age = firstTestDoc.data().age || 'N/A'; // Retrieve age from the first test document or 'N/A' if missing
+      // Fetching age from birthDate and createdAt
+      const user = users.find((user) => user.id === userId);
+      if (user) {
+        const age = calculateAge(user.birthDate);
         setUserAge(age);
+        setUserCreatedAt(formatCreatedAt(user.createdAt));
       }
 
       setTestResults(results);
@@ -122,12 +168,20 @@ export default function UserList() {
 
   return (
     <View style={styles.container}>
+      {/* Search Input */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search by username or email"
+        value={searchQuery}
+        onChangeText={handleSearch}
+      />
+
       <View style={styles.flatListContainer}>
         {isFetching ? (
           <ActivityIndicator size="large" color="#7f44ff" />
         ) : (
           <FlatList
-            data={users}
+            data={filteredUsers}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -137,7 +191,10 @@ export default function UserList() {
                   fetchTestResults(item.id);
                 }}
               >
+                <Text style={styles.userText}>{item.firstName} {item.lastName}</Text>
                 <Text style={styles.userText}>{item.email}</Text>
+                <Text style={styles.userText}>{`Age: ${calculateAge(item.birthDate)}`}</Text>
+                <Text style={styles.userText}>{`Account Created: ${formatCreatedAt(item.createdAt)}`}</Text>
               </TouchableOpacity>
             )}
           />
@@ -207,6 +264,16 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
+  searchInput: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 10,
+    marginBottom: 20,
+    backgroundColor: '#f9f9f9',
+    fontSize: 16,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -238,19 +305,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   selectedUser: {
-    backgroundColor: '#7f44ff',
+    backgroundColor: '#9C7EC9',
   },
   userText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#333',
-    fontWeight: '500',
+    fontWeight: '400',
   },
   testButtonsContainer: {
     marginTop: 10,
     alignItems: 'center',
   },
   testButton: {
-    backgroundColor: '#0066cc',
+    backgroundColor: 'navy',
     padding: 15,
     borderRadius: 25,
     marginVertical: 5,

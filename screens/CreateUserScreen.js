@@ -6,12 +6,14 @@ import { addDoc, collection } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 
 export default function CreateUser() {
- const navigation = useNavigation();
+  const navigation = useNavigation();
  
    const [email, setEmail] = useState('');
    const [password, setPassword] = useState('');
    const [confirmPassword, setConfirmPassword] = useState('');
    const [birthDate, setBirthDate] = useState('');
+   const [firstName, setFirstName] = useState('');  // New state for first name
+   const [lastName, setLastName] = useState('');    // New state for last name
    const [isModalVisible, setIsModalVisible] = useState(false);
    const [loading, setLoading] = useState(false);
    const [year, setYear] = useState('');
@@ -52,6 +54,8 @@ export default function CreateUser() {
            uid: user.uid,
            email: user.email,
            birthDate: birthDate,
+           firstName: firstName,  // Save first name
+           lastName: lastName,    // Save last name
            createdAt: new Date(),
            isAdmin: isAdmin,
          });
@@ -71,8 +75,22 @@ export default function CreateUser() {
  
    return (
      <View style={styles.container}>
-       <Text style={styles.title}>User Information</Text>
+       <Text style={styles.title}>Sign Up</Text>
        <KeyboardAvoidingView behavior="padding" style={styles.keyboardAvoidingView}>
+         <TextInput
+           style={styles.input}
+           value={firstName}
+           onChangeText={setFirstName}
+           placeholder="First Name"
+           placeholderTextColor="gray"
+         />
+         <TextInput
+           style={styles.input}
+           value={lastName}
+           onChangeText={setLastName}
+           placeholder="Last Name"
+           placeholderTextColor="gray"
+         />
          <TextInput
            style={styles.input}
            value={email}
@@ -109,9 +127,15 @@ export default function CreateUser() {
          </TouchableOpacity>
  
          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
-           <Text style={styles.buttonText}>{loading ? 'Creating...' : 'Create'}</Text>
+           <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Register'}</Text>
          </TouchableOpacity>
-         
+         <View style={styles.linkContainer}>
+           <Text>Do you already have an account?
+             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+               <Text style={styles.linkText}> Login Here</Text>
+             </TouchableOpacity>
+           </Text>
+         </View>
        </KeyboardAvoidingView>
  
        {/* Modal for Custom Date Picker */}
@@ -263,15 +287,6 @@ export default function CreateUser() {
      fontSize: 18,
      fontWeight: 'bold',
      color: 'gray',
-   },
-   adminSwitchContainer: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     marginVertical: 10,
-   },
-   switchLabel: {
-     marginRight: 10,
-     fontSize: 16,
    },
  });
  

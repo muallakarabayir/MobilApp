@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
@@ -119,23 +119,21 @@ export default function User() {
 
   const renderTestValues = (values, comparison) => {
     return (
-      <FlatList
-        data={Object.entries(values)}
-        keyExtractor={(item) => item[0]}
-        renderItem={({ item }) => (
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>{item[0]}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={styles.tableValue}>{item[1]}</Text>
-              {comparison && comparison[item[0]] && (
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+        <View style={styles.table}>
+          {Object.entries(values).map(([key, value]) => (
+            <View key={key} style={styles.tableRow}>
+              <Text style={styles.tableCell}>{key}</Text>
+              <Text style={styles.tableValue}>{value}</Text>
+              {comparison && comparison[key] && (
                 <View style={styles.comparisonImageContainer}>
-                  {renderComparisonImage(comparison[item[0]])}
+                  {renderComparisonImage(comparison[key])}
                 </View>
               )}
             </View>
-          </View>
-        )}
-      />
+          ))}
+        </View>
+      </ScrollView>
     );
   };
 
@@ -249,7 +247,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   testButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#9C7EC9',
     paddingVertical: 12,
     borderRadius: 25,
     marginVertical: 10,
@@ -266,16 +264,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signOutButton: {
-    backgroundColor: '#FF6347',
+    backgroundColor: 'navy',
     padding: 15,
     borderRadius: 25,
-    marginTop: 20,
     width: '70%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    marginBottom:100
   },
   buttonText: {
     color: 'white',
@@ -316,16 +314,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E1E1E1',
     justifyContent: 'space-between', // Ensures equal spacing between columns
+    alignItems: 'center', // Ensures items are vertically aligned
   },
   tableCell: {
-    flex: 1,
+    flex: 2,
     fontSize: 16,
     padding: 8,
     color: '#34495E',
     textAlign: 'left',
   },
   tableValue: {
-    flex: 1,
+    flex: 2,
     fontSize: 16,
     padding: 8,
     color: '#34495E',
@@ -333,6 +332,8 @@ const styles = StyleSheet.create({
   },
   comparisonImageContainer: {
     marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   comparisonImage: {
     width: 20,

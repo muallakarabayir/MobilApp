@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator,TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import LoginScreen from './screens/LoginScreen';
@@ -17,6 +17,7 @@ import CreateGuide from './screens/CreateGuideScreen';
 import CreateUser from './screens/CreateUserScreen';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 
 
@@ -73,6 +74,17 @@ export default function App() {
       }
     });
   }, []);
+
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsAuthenticated(false);
+      setIsAdmin(false); // Reset admin status
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -141,6 +153,19 @@ export default function App() {
         />
         </>
         )}
+
+        {/* Styled Logout button */}
+        <Drawer.Screen
+          name="Logout"
+          component={() => null} // Empty component, it's just a button
+          options={{
+            drawerLabel: () => (
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.logoutText}>Logout</Text>
+              </TouchableOpacity>
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </NavigationContainer>
   );
@@ -158,5 +183,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  logoutButton: {
+    padding: 15,
+    backgroundColor: 'navy', // Red background for logout
+    borderRadius: 10,
+    marginHorizontal: 25,
+    marginTop: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: {
+    color: '#fff', // White text
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

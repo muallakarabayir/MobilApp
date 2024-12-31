@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   selectedUser: {
-    backgroundColor: '#7f44ff',
+    backgroundColor: '#9C7EC9',
   },
   userText: {
     fontSize: 18,

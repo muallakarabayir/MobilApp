@@ -40,6 +40,8 @@ export default function AddBloodTest() {
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const [filteredUsers, setFilteredUsers] = useState([]); // Filtered users based on search query
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -51,9 +53,12 @@ export default function AddBloodTest() {
             id: doc.id,
             email: data.email,
             birthDate: data.birthDate || null, 
+            firstName: data.firstName, // Added first name for search
+            lastName: data.lastName,   // Added last name for search
           };
         });
         setUsers(usersList);
+        setFilteredUsers(usersList); // Initially set filtered users as all users
       } catch (error) {
         console.error('Error fetching users:', error);
         Alert.alert('Error', 'Failed to fetch users.');
@@ -64,6 +69,17 @@ export default function AddBloodTest() {
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    // Filter users based on search query
+    const filtered = users.filter(
+      (user) =>
+        user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  }, [searchQuery, users]);
 
   const calculateAgeInMonths = (birthDate) => {
     if (!birthDate) return null;
@@ -140,6 +156,7 @@ export default function AddBloodTest() {
 
       Alert.alert('Success', 'Blood test added successfully.');
 
+      // Reset the form fields after success
       setIgG('');
       setIgA('');
       setIgM('');
@@ -168,9 +185,18 @@ export default function AddBloodTest() {
 
   return (
     <View style={styles.container}>
+      {/* Search Input */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search by Name or Email"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholderTextColor="#888"
+      />
+
       <View style={styles.flatListContainer}>
         <FlatList
-          data={users}
+          data={filteredUsers}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -189,6 +215,7 @@ export default function AddBloodTest() {
       </View>
 
       <ScrollView contentContainerStyle={styles.form}>
+        {/* Form Fields (IgG, IgA, etc.) */}
         <TextInput style={styles.input} placeholder="IgG (mg/dl)" value={igg} onChangeText={setIgG} placeholderTextColor="#888" />
         <TextInput style={styles.input} placeholder="IgA (mg/dl)" value={iga} onChangeText={setIgA} placeholderTextColor="#888" />
         <TextInput style={styles.input} placeholder="IgM (mg/dl)" value={igm} onChangeText={setIgM} placeholderTextColor="#888" />
@@ -272,6 +299,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
   },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 10,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
   flatListContainer: {
     marginBottom: 20,
   },
@@ -295,7 +335,7 @@ const styles = StyleSheet.create({
   },
   createUserButton: {
     alignItems: 'center',
-    backgroundColor: '#0066cc',
+    backgroundColor: '#9C7EC9',
     paddingVertical: 10,
     borderRadius: 25,
     marginTop: 10,
@@ -313,41 +353,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     padding: 12,
-    marginVertical: 8,
     borderRadius: 10,
+    marginBottom: 15,
     fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  buttonContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  button: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
   },
   dateButton: {
-    marginTop: 15,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
     padding: 12,
-    backgroundColor: '#f1f1f1',
     borderRadius: 10,
+    marginBottom: 15,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   dateText: {
     fontSize: 16,
     color: '#333',
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: '#6c5ce7',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '500',
   },
   modalContainer: {
     flex: 1,
@@ -356,43 +393,39 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '85%',
     backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
+    borderRadius: 10,
+    width: '80%',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
   },
   dateRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
   },
   dateInput: {
-    width: 60,
-    padding: 10,
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ddd',
-    marginHorizontal: 5,
-    borderRadius: 10,
+    padding: 12,
     fontSize: 16,
-    textAlign: 'center',
+    borderRadius: 10,
+    width: '30%',
   },
   smallInput: {
-    width: 50,
+    width: '30%',
   },
   separator: {
-    fontSize: 18,
-    marginHorizontal: 5,
-    color: '#333',
+    fontSize: 20,
+    marginVertical: 10,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    marginTop: 20,
   },
 });

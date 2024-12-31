@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { getDatabase, ref, set } from 'firebase/database'; // Firebase import
+import { View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { getFirestore, doc, setDoc, collection } from 'firebase/firestore'; // Import Firestore functions
 
 const CreateGuide = () => {
   const [guideName, setGuideName] = useState('');   // Kılavuz adı
@@ -55,10 +55,7 @@ const CreateGuide = () => {
     setTestData(prevData => {
       const updatedData = { ...prevData };
       updatedData[selectedTest] = [...updatedData[selectedTest], newTestValue];
-      
-      // Log the updated testData to console
       console.log('Updated Test Data:', updatedData);
-      
       return updatedData;
     });
   
@@ -67,44 +64,66 @@ const CreateGuide = () => {
     setHighValue('');
     setStatus('Yaş Aralığı ve Değerler başarıyla eklendi!');
   };
-  
 
+  // Function to add the guide data to Firestore
+  const addGuideDocuments = async (guideName, testData) => {
+    try {
+      const db = getFirestore();
+
+      // Reference to the "ranges" collection and the document for the guide
+      const guideRef = doc(db, 'ranges', guideName); // Guide name is the document name
+
+      // Set the initial guide document (can include metadata, or leave empty)
+      await setDoc(guideRef, { guideName });
+
+      // Loop through the testData and create subcollections for each test
+      for (const [testName, values] of Object.entries(testData)) {
+        if (values.length > 0) {
+          // Create a subcollection for each test under the guide document
+          const testRef = collection(guideRef, testName);
+
+          // Loop through each value for the test and create a document for each age range
+          for (const item of values) {
+            const { ageRange, high, low } = item;
+
+            // Define a document for each ageRange under the corresponding test collection
+            const ageRangeDocRef = doc(testRef, ageRange); // Document name is the ageRange
+
+            // Set the data for each age range
+            await setDoc(ageRangeDocRef, { ageRange, high, low });
+            console.log(`Added document for ${guideName} - ${testName} - ${ageRange}`);
+          }
+        }
+      }
+
+      // After successful data submission, show an alert
+      Alert.alert("Başarıyla Kaydedildi", "Kılavuz başarıyla kaydedildi!");
+    } catch (error) {
+      console.error("Error adding documents: ", error);
+      Alert.alert("Hata", "Kılavuz kaydedilirken bir hata oluştu.");
+    }
+  };
+
+  // Function to submit the guide to Firebase
   const submitToFirebase = async () => {
     if (!guideName) {
       setStatus('Lütfen bir kılavuz adı girin.');
       return;
     }
-  
-    const db = getDatabase();
-    const guideRef = ref(db, `guides/${guideName}`);
-  
-    // Structuring the data as required (filter out empty arrays)
-    const formattedData = Object.entries(testData).reduce((acc, [testName, values]) => {
-      if (values.length > 0) {
-        acc[testName] = values.map(value => ({
-          ageRange: value.ageRange,
-          low: value.low,
-          high: value.high
-        }));
-      }
-      return acc;
-    }, {});
-  
-    console.log('Formatted Data:', formattedData);  // Log the formatted data
-    console.log('Guide Name:', guideName);  // Log the guide name to check if it's being passed
-  
+
     try {
-      await set(guideRef, formattedData); // Sending the data to Firebase
-      setStatus('Kılavuz başarıyla kaydedildi!');
+      // Call the function to add the guide and its tests to Firestore
+      await addGuideDocuments(guideName, testData);
+      // Reset status as it will no longer be used for feedback
+      setStatus('');
     } catch (error) {
-      console.error('Firebase Error:', error);  // Log error details
+      console.error('Error saving guide data to Firestore:', error);
       setStatus('Kılavuz kaydedilirken bir hata oluştu.');
     }
   };
-
+  
   return (
     <ScrollView style={styles.container}>
-      {/* Eklenen değerlerin kart şeklinde gösterimi */}
       {Object.entries(testData).map(([test, values]) => (
         values.length > 0 && (
           <View key={test} style={styles.card}>
@@ -118,7 +137,6 @@ const CreateGuide = () => {
         )
       ))}
 
-      {/* Kılavuz adı */}
       <TextInput
         placeholder="Kılavuz Adı"
         value={guideName}
@@ -128,12 +146,11 @@ const CreateGuide = () => {
         onSubmitEditing={() => ageRangeRef.current.focus()}
       />
 
-      {/* Testler için her bir input */}
       {tests.map((test, index) => (
         <View key={index} style={styles.testField}>
           <TouchableOpacity
             style={selectedTest === test ? styles.selectedTestButton : styles.testButton}
-            onPress={() => setSelectedTest(test)} // Test seçimi
+            onPress={() => setSelectedTest(test)}
           >
             <Text style={selectedTest === test ? styles.selectedTestText : styles.testText}>
               {test}
@@ -142,7 +159,6 @@ const CreateGuide = () => {
 
           {selectedTest === test && (
             <View style={styles.testInputs}>
-              {/* Yaş Aralığı */}
               <View style={styles.inputField}>
                 <Text style={styles.label}>Yaş Aralığı (örn. 0-3)</Text>
                 <TextInput
@@ -156,7 +172,6 @@ const CreateGuide = () => {
                 />
               </View>
 
-              {/* Düşük Değer */}
               <View style={styles.inputField}>
                 <Text style={styles.label}>En Düşük Değer</Text>
                 <TextInput
@@ -171,7 +186,6 @@ const CreateGuide = () => {
                 />
               </View>
 
-              {/* Yüksek Değer */}
               <View style={styles.inputField}>
                 <Text style={styles.label}>En Yüksek Değer</Text>
                 <TextInput
@@ -185,7 +199,6 @@ const CreateGuide = () => {
                 />
               </View>
 
-              {/* Yaş Aralığı ve Değerleri ekleme butonu */}
               <TouchableOpacity style={styles.addButton} onPress={handleAddTestValue}>
                 <Text style={styles.addButtonText}>Değeri Ekle</Text>
               </TouchableOpacity>
@@ -194,12 +207,11 @@ const CreateGuide = () => {
         </View>
       ))}
 
-      {/* Gönder butonu */}
       <TouchableOpacity style={styles.addButton} onPress={submitToFirebase}>
         <Text style={styles.addButtonText}>Firebase'e Gönder</Text>
       </TouchableOpacity>
 
-      {status ? <Text style={styles.statusText}>{status}</Text> : null}
+      {/* Remove status text as we are using alerts */}
     </ScrollView>
   );
 };
@@ -212,7 +224,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
+    borderBottomColor: '#9C7EC9',
     marginBottom: 15,
     padding: 10,
     fontSize: 16,
@@ -225,14 +237,14 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   testButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#9C7EC9', // Light purple color
     padding: 10,
     marginVertical: 10,
     borderRadius: 5,
     alignItems: 'center',
   },
   selectedTestButton: {
-    backgroundColor: '#8BC34A',
+    backgroundColor: '#B79DE7', // Slightly lighter purple for selected
     padding: 10,
     marginVertical: 10,
     borderRadius: 5,
@@ -254,7 +266,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#8f8f8f', // Light purple color
     paddingVertical: 12,
     borderRadius: 5,
     alignItems: 'center',
@@ -264,12 +276,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#fff',
     fontWeight: 'bold',
-  },
-  statusText: {
-    marginTop: 20,
-    color: '#28a745',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   card: {
     backgroundColor: '#fff',
@@ -286,11 +292,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#4CAF50',
+    color: '#8f8f8f',
   },
   cardText: {
     fontSize: 14,
-    color: '#333',
+    color: '#8f8f8f',
   },
 });
 

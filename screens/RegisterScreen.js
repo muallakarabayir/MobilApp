@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, View, TouchableOpacity, Modal, Button, Switch } from 'react-native';
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, View, TouchableOpacity, Modal, Button } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { firebaseAuth, db } from '../firebase/firebaseConfig.js';
 import { addDoc, collection } from 'firebase/firestore';
@@ -12,6 +12,8 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [firstName, setFirstName] = useState('');  // New state for first name
+  const [lastName, setLastName] = useState('');    // New state for last name
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [year, setYear] = useState('');
@@ -52,6 +54,8 @@ export default function Register() {
           uid: user.uid,
           email: user.email,
           birthDate: birthDate,
+          firstName: firstName,  // Save first name
+          lastName: lastName,    // Save last name
           createdAt: new Date(),
           isAdmin: isAdmin,
         });
@@ -73,6 +77,20 @@ export default function Register() {
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
       <KeyboardAvoidingView behavior="padding" style={styles.keyboardAvoidingView}>
+        <TextInput
+          style={styles.input}
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="First Name"
+          placeholderTextColor="gray"
+        />
+        <TextInput
+          style={styles.input}
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Last Name"
+          placeholderTextColor="gray"
+        />
         <TextInput
           style={styles.input}
           value={email}
@@ -269,14 +287,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'gray',
-  },
-  adminSwitchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  switchLabel: {
-    marginRight: 10,
-    fontSize: 16,
   },
 });
