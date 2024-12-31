@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, ActivityIndicator, Image } from 'react-native';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
@@ -74,7 +74,18 @@ export default function User() {
         };
       });
 
-      setTestResults(results);
+      results.sort((a, b) => b.id.localeCompare(a.id));
+
+      const resultsWithComparison = results.map((test, index) => {
+        if (index === 0) return { ...test, comparison: null };
+
+        const previousTest = results[index - 1];
+        const comparison = compareTestResults(previousTest.values, test.values);
+
+        return { ...test, comparison };
+      });
+
+      setTestResults(resultsWithComparison);
     } catch (error) {
       console.error('Error fetching test results:', error);
       Alert.alert('Error', 'Failed to fetch test results.');
@@ -83,12 +94,30 @@ export default function User() {
     }
   };
 
+  const compareTestResults = (previousValues, currentValues) => {
+    const comparison = {};
+
+    Object.entries(currentValues).forEach(([key, value]) => {
+      if (previousValues[key] !== undefined) {
+        if (value > previousValues[key]) {
+          comparison[key] = 'higher';
+        } else if (value < previousValues[key]) {
+          comparison[key] = 'lower';
+        } else {
+          comparison[key] = 'equal';
+        }
+      }
+    });
+
+    return comparison;
+  };
+
   const handleTestPress = (test) => {
     setSelectedTest(test);
     setModalVisible(true);
   };
 
-  const renderTestValues = (values) => {
+  const renderTestValues = (values, comparison) => {
     return (
       <FlatList
         data={Object.entries(values)}
@@ -96,11 +125,31 @@ export default function User() {
         renderItem={({ item }) => (
           <View style={styles.tableRow}>
             <Text style={styles.tableCell}>{item[0]}</Text>
-            <Text style={styles.tableCell}>{item[1]}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={styles.tableValue}>{item[1]}</Text>
+              {comparison && comparison[item[0]] && (
+                <View style={styles.comparisonImageContainer}>
+                  {renderComparisonImage(comparison[item[0]])}
+                </View>
+              )}
+            </View>
           </View>
         )}
       />
     );
+  };
+
+  const renderComparisonImage = (comparisonValue) => {
+    let imageSource;
+    if (comparisonValue === 'higher') {
+      imageSource = require('../assets/up.png');
+    } else if (comparisonValue === 'lower') {
+      imageSource = require('../assets/down.png');
+    } else if (comparisonValue === 'equal') {
+      imageSource = require('../assets/equal.png');
+    }
+
+    return <Image source={imageSource} style={styles.comparisonImage} />;
   };
 
   return (
@@ -150,7 +199,10 @@ export default function User() {
               <>
                 <Text style={styles.modalTitle}>{selectedTest.testName}</Text>
                 <View style={styles.table}>
-                  {renderTestValues(selectedTest.values)}
+                  {renderTestValues(
+                    selectedTest.values,
+                    selectedTest.comparison
+                  )}
                 </View>
               </>
             )}
@@ -180,32 +232,33 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   welcomeText: {
-    color: '#333',
-    fontSize: 28,
-    fontWeight: '600',
+    color: '#2C3E50',
+    fontSize: 30,
+    fontWeight: '700',
     marginBottom: 8,
   },
   emailText: {
-    color: '#555',
+    color: '#7F8C8D',
     fontSize: 18,
+    fontWeight: '500',
   },
   sectionTitle: {
-    color: '#333',
+    color: '#2C3E50',
     fontSize: 22,
     fontWeight: '700',
     marginVertical: 15,
   },
   testButton: {
     backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 15,
-    marginVertical: 8,
-    width: "300",
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginVertical: 10,
+    width: 300,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 5,
   },
   testButtonText: {
     color: 'white',
@@ -214,16 +267,15 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     backgroundColor: '#FF6347',
-    padding: 12,
-    borderRadius: 20,
+    padding: 15,
+    borderRadius: 25,
     marginTop: 20,
     width: '70%',
     alignItems: 'center',
-    marginBottom: 40,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   buttonText: {
     color: 'white',
@@ -238,49 +290,64 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 25,
-    borderRadius: 15,
-    width: '85%',
-    maxHeight: '70%',
+    padding: 30,
+    borderRadius: 20,
+    width: '90%',
+    maxHeight: '75%',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowRadius: 10,
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 15,
-    color: '#333',
+    marginBottom: 20,
+    color: '#2C3E50',
   },
   table: {
-    marginTop: 15,
     width: '100%',
+    marginTop: 15,
   },
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E1E1E1',
+    justifyContent: 'space-between', // Ensures equal spacing between columns
   },
   tableCell: {
     flex: 1,
     fontSize: 16,
     padding: 8,
+    color: '#34495E',
     textAlign: 'left',
-    color: '#444',
+  },
+  tableValue: {
+    flex: 1,
+    fontSize: 16,
+    padding: 8,
+    color: '#34495E',
+    textAlign: 'right',
+  },
+  comparisonImageContainer: {
+    marginLeft: 10,
+  },
+  comparisonImage: {
+    width: 20,
+    height: 20,
   },
   closeButton: {
     backgroundColor: '#4CAF50',
-    padding: 12,
-    borderRadius: 20,
-    marginTop: 5,
+    padding: 15,
+    borderRadius: 25,
+    marginTop: 15,
     width: '90%',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 5,
   },
 });
