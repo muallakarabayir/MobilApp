@@ -75,7 +75,7 @@ export default function CreateUser() {
  
    return (
      <View style={styles.container}>
-       <Text style={styles.title}>Sign Up</Text>
+       <Text style={styles.title}>Create User</Text>
        <KeyboardAvoidingView behavior="padding" style={styles.keyboardAvoidingView}>
          <TextInput
            style={styles.input}
@@ -127,15 +127,9 @@ export default function CreateUser() {
          </TouchableOpacity>
  
          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
-           <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Register'}</Text>
+           <Text style={styles.buttonText}>{loading ? 'Creating...' : 'Create'}</Text>
          </TouchableOpacity>
-         <View style={styles.linkContainer}>
-           <Text>Do you already have an account?
-             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-               <Text style={styles.linkText}> Login Here</Text>
-             </TouchableOpacity>
-           </Text>
-         </View>
+        
        </KeyboardAvoidingView>
  
        {/* Modal for Custom Date Picker */}
